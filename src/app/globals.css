@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f1e8;
+  --foreground: #1a2230;
+  --panel: rgba(255, 250, 244, 0.88);
+  --panel-strong: #fff9f1;
+  --border: rgba(32, 42, 58, 0.12);
+  --accent: #d86d29;
+  --accent-strong: #9f3c08;
+  --muted: #697586;
+  --success: #2f7d57;
+  --warning: #b66b14;
+  --shadow: 0 20px 60px rgba(27, 34, 47, 0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #11161f;
+    --foreground: #f5f0e8;
+    --panel: rgba(20, 28, 39, 0.92);
+    --panel-strong: #1a2230;
+    --border: rgba(245, 240, 232, 0.1);
+    --muted: #adb9ca;
+    --shadow: 0 24px 70px rgba(5, 8, 12, 0.5);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(216, 109, 41, 0.18), transparent 28%),
+    radial-gradient(circle at right 20%, rgba(47, 125, 87, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%),
+    var(--background);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.shell {
+  width: min(1120px, calc(100vw - 1.5rem));
+  margin: 0 auto;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.panel-strong {
+  background: var(--panel-strong);
+}
+
+.field {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.9rem 1rem;
+  color: var(--foreground);
+}
+
+.field::placeholder {
+  color: var(--muted);
+}
+
+.btn-primary {
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: white;
+  padding: 0.8rem 1.15rem;
+  font-weight: 650;
+}
+
+.btn-secondary {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 0.8rem 1.15rem;
+  font-weight: 600;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  font-weight: 750;
+}
+
+.subtle-grid {
+  background-image:
+    linear-gradient(rgba(106, 117, 134, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(106, 117, 134, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
