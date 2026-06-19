@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { handleIncomingWhatsAppMessage } from "@/lib/bot";
+import { getWhatsAppConfig } from "@/lib/garage-data";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
 const fallbackVerifyToken = "luckystar_verify_de3842148dd14258a2f5ec1266e42563";
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
   const mode = searchParams.get("hub.mode");
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
+  const config = await getWhatsAppConfig();
 
   if (!mode) {
     return NextResponse.json({
@@ -47,8 +49,7 @@ export async function GET(request: NextRequest) {
   if (
     mode === "subscribe" &&
     token &&
-    token ===
-      (process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || fallbackVerifyToken)
+    token === (config.verifyToken || fallbackVerifyToken)
   ) {
     return new NextResponse(challenge ?? "ok");
   }

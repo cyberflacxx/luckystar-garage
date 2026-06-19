@@ -1,19 +1,18 @@
-import { getEnv, isWhatsAppConfigured } from "@/lib/env";
+import { getWhatsAppConfig } from "@/lib/garage-data";
 
 export async function sendWhatsAppText(to: string, body: string) {
-  if (!isWhatsAppConfigured()) {
+  const config = await getWhatsAppConfig();
+
+  if (!config.accessToken || !config.phoneNumberId) {
     return { ok: false, skipped: true };
   }
 
-  const phoneNumberId = getEnv("WHATSAPP_PHONE_NUMBER_ID");
-  const accessToken = getEnv("WHATSAPP_ACCESS_TOKEN");
-
   const response = await fetch(
-    `https://graph.facebook.com/v23.0/${phoneNumberId}/messages`,
+    `https://graph.facebook.com/v23.0/${config.phoneNumberId}/messages`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${config.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

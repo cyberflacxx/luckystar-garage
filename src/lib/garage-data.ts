@@ -82,6 +82,15 @@ function mapSetting(row: Record<string, unknown>): BusinessSetting {
   };
 }
 
+const whatsappSettingKeys = {
+  accessToken: "whatsapp_access_token",
+  phoneNumberId: "whatsapp_phone_number_id",
+  businessAccountId: "whatsapp_business_account_id",
+  verifyToken: "whatsapp_webhook_verify_token",
+} as const;
+
+const fallbackVerifyToken = "luckystar_verify_de3842148dd14258a2f5ec1266e42563";
+
 function mapRequest(row: Record<string, unknown>): CustomerRequest {
   return {
     id: String(row.id),
@@ -173,6 +182,8 @@ export async function getDashboardData(): Promise<DashboardData> {
 }
 
 export async function getSetupStatus() {
+  const whatsappConfig = await getWhatsAppConfig();
+
   const items: SetupItem[] = [
     {
       label: "Supabase connection",
@@ -182,7 +193,11 @@ export async function getSetupStatus() {
     {
       label: "WhatsApp webhook",
       detail: "Needs access token, phone number id, and verify token.",
-      ready: isWhatsAppConfigured(),
+      ready: Boolean(
+        whatsappConfig.accessToken &&
+          whatsappConfig.phoneNumberId &&
+          whatsappConfig.verifyToken,
+      ),
     },
     {
       label: "Business profile",
@@ -198,6 +213,49 @@ export async function getSetupStatus() {
   return {
     modeLabel: isSupabaseConfigured() ? "Live Supabase" : "Demo fallback",
     items,
+  };
+}
+
+export async function getSettingValue(key: string) {
+  const supabase = getServiceSupabase();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data } = await supabase
+    .from("bot_config")
+    .select("value")
+    .eq("key", key)
+    .maybeSingle();
+
+  return normalizeText(data?.value as string | null) ?? null;
+}
+
+export async function getWhatsAppConfig() {
+  const [accessToken, phoneNumberId, businessAccountId, verifyToken] =
+    await Promise.all([
+      getSettingValue(whatsappSettingKeys.accessToken),
+      getSettingValue(whatsappSettingKeys.phoneNumberId),
+      getSettingValue(whatsappSettingKeys.businessAccountId),
+      getSettingValue(whatsappSettingKeys.verifyToken),
+    ]);
+
+  return {
+    accessToken: accessToken ?? getEnv("WHATSAPP_ACCESS_TOKEN"),
+    phoneNumberId: phoneNumberId ?? getEnv("WHATSAPP_PHONE_NUMBER_ID"),
+    businessAccountId:
+      businessAccountId ?? getEnv("WHATSAPP_BUSINESS_ACCOUNT_ID"),
+    verifyToken:
+      verifyToken ??
+      getEnv("WHATSAPP_WEBHOOK_VERIFY_TOKEN") ??
+      fallbackVerifyToken,
+    source:
+      accessToken || phoneNumberId || businessAccountId || verifyToken
+        ? "supabase"
+        : isWhatsAppConfigured()
+          ? "env"
+          : "missing",
   };
 }
 
