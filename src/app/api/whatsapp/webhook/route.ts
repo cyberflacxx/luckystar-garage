@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleIncomingWhatsAppMessage } from "@/lib/bot";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
+const fallbackVerifyToken = "luckystar_verify_de3842148dd14258a2f5ec1266e42563";
+
 type WebhookMessage = {
   from?: string;
   text?: { body?: string };
@@ -45,7 +47,8 @@ export async function GET(request: NextRequest) {
   if (
     mode === "subscribe" &&
     token &&
-    token === process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN
+    token ===
+      (process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || fallbackVerifyToken)
   ) {
     return new NextResponse(challenge ?? "ok");
   }
