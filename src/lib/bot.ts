@@ -7,11 +7,68 @@ import {
   saveConversationSession,
 } from "@/lib/garage-data";
 import type { ConversationSession, Intent } from "@/lib/types";
+import type { WhatsAppOutbound } from "@/lib/whatsapp";
+
+type StepChoice = {
+  id: string;
+  title: string;
+  description?: string;
+};
 
 type FlowStep = {
   key: string;
   question: string;
+  ui?: "text" | "buttons" | "list";
+  buttonText?: string;
+  choices?: StepChoice[];
 };
+
+const welcomeMenu: StepChoice[] = [
+  {
+    id: "service",
+    title: "Car service",
+    description: "Minor, major, engine and Benz service work",
+  },
+  {
+    id: "assessment",
+    title: "Diagnosis",
+    description: "Fault finding, inspections and engine assessment",
+  },
+  {
+    id: "parts",
+    title: "Spare parts",
+    description: "Mercedes-Benz parts, filters, brakes and more",
+  },
+  {
+    id: "pricing",
+    title: "Prices",
+    description: "Service, labour and diagnostic estimates",
+  },
+  {
+    id: "location",
+    title: "Location",
+    description: "Workshop address and operating hours",
+  },
+  {
+    id: "human",
+    title: "Talk to us",
+    description: "Get handed over to a person",
+  },
+];
+
+const mercedesModels = [
+  "C180",
+  "C200",
+  "C250",
+  "E200",
+  "E320",
+  "CLA",
+  "ML",
+  "GLA",
+  "GLC",
+  "Sprinter",
+  "Other",
+];
 
 const conversationFlows: Record<
   Exclude<Intent, "unknown" | "location" | "human" | "pricing">,
@@ -21,24 +78,93 @@ const conversationFlows: Record<
     { key: "customer_name", question: "Please share your name first." },
     {
       key: "vehicle_brand",
-      question: "What is the vehicle brand? Example: Mercedes, Toyota, Volvo, BMW, Nissan.",
+      question: "Choose the vehicle brand below.",
+      ui: "list",
+      buttonText: "Choose brand",
+      choices: [
+        {
+          id: "Mercedes-Benz",
+          title: "Mercedes-Benz",
+          description: "LuckyStar specialization",
+        },
+        { id: "Toyota", title: "Toyota" },
+        { id: "Volvo", title: "Volvo" },
+        { id: "BMW", title: "BMW" },
+        { id: "Nissan", title: "Nissan" },
+        { id: "Other", title: "Other" },
+      ],
     },
     {
       key: "vehicle_model",
-      question: "What is the vehicle model or make? Example: C180, CLA250, E320, Hilux, S40.",
+      question:
+        "Choose a model below or type it if it is not listed. Mercedes-Benz models are prioritized here.",
+      ui: "list",
+      buttonText: "Choose model",
+      choices: mercedesModels.map((model) => ({ id: model, title: model })),
     },
     { key: "vehicle_year", question: "What year is the car?" },
     {
       key: "engine_type",
-      question: "What is the engine type if known? Reply with petrol, diesel, hybrid, or unknown.",
+      question: "Choose the engine type if known.",
+      ui: "buttons",
+      choices: [
+        { id: "petrol", title: "Petrol" },
+        { id: "diesel", title: "Diesel" },
+        { id: "hybrid", title: "Hybrid" },
+      ],
     },
     {
       key: "service_type",
-      question: "Which service do you need? Example: minor service, major service, brake service, oil change, suspension check.",
+      question: "Choose the service you need.",
+      ui: "list",
+      buttonText: "Choose service",
+      choices: [
+        {
+          id: "Minor service",
+          title: "Minor service",
+          description: "Routine maintenance and checks",
+        },
+        {
+          id: "Major service",
+          title: "Major service",
+          description: "Deep service for Mercedes-Benz and other brands",
+        },
+        {
+          id: "Engine repair",
+          title: "Engine repair",
+          description: "Repairs, rebuilds and diagnosis",
+        },
+        {
+          id: "Engine replacement",
+          title: "Engine replacement",
+          description: "Complete engine swap enquiry",
+        },
+        {
+          id: "Brake service",
+          title: "Brake service",
+          description: "Pads, discs, sensors and fitting",
+        },
+        {
+          id: "Suspension check",
+          title: "Suspension check",
+          description: "Arms, shocks and steering checks",
+        },
+        {
+          id: "Oil change",
+          title: "Oil change",
+          description: "Quick service and filter replacement",
+        },
+        { id: "Other", title: "Other", description: "Type your own request" },
+      ],
     },
     {
       key: "has_parts",
-      question: "Do you already have the service parts? Reply yes or no.",
+      question: "Do you already have the service parts?",
+      ui: "buttons",
+      choices: [
+        { id: "yes", title: "Yes" },
+        { id: "no", title: "No" },
+      ],
     },
     { key: "preferred_date", question: "Which date would you prefer for the booking?" },
     { key: "preferred_time", question: "Which time works best for you?" },
@@ -49,47 +175,113 @@ const conversationFlows: Record<
   ],
   assessment: [
     { key: "customer_name", question: "Please share your name first." },
-    { key: "vehicle_brand", question: "What is the vehicle brand?" },
+    {
+      key: "vehicle_brand",
+      question: "Choose the vehicle brand below.",
+      ui: "list",
+      buttonText: "Choose brand",
+      choices: [
+        {
+          id: "Mercedes-Benz",
+          title: "Mercedes-Benz",
+          description: "Diagnostics and specialist repair",
+        },
+        { id: "Toyota", title: "Toyota" },
+        { id: "Volvo", title: "Volvo" },
+        { id: "BMW", title: "BMW" },
+        { id: "Nissan", title: "Nissan" },
+        { id: "Other", title: "Other" },
+      ],
+    },
     { key: "vehicle_model", question: "What is the vehicle model?" },
     { key: "vehicle_year", question: "What year is the car?" },
     {
       key: "engine_type",
-      question: "What is the engine type if known? Reply petrol, diesel, hybrid, or unknown.",
+      question: "Choose the engine type if known.",
+      ui: "buttons",
+      choices: [
+        { id: "petrol", title: "Petrol" },
+        { id: "diesel", title: "Diesel" },
+        { id: "hybrid", title: "Hybrid" },
+      ],
     },
     {
       key: "problem_description",
-      question: "What problem is the car showing? Example: overheating, misfire, gearbox slipping, no start.",
+      question:
+        "What problem is the car showing? Example: overheating, no start, gearbox issue, smoke, knock.",
     },
     {
       key: "is_movable",
-      question: "Is the car movable? Reply yes, no, or needs towing.",
+      question: "Is the car movable?",
+      ui: "buttons",
+      choices: [
+        { id: "yes", title: "Yes" },
+        { id: "no", title: "No" },
+        { id: "needs towing", title: "Needs towing" },
+      ],
     },
     { key: "preferred_date", question: "Which date do you want the assessment?" },
     {
       key: "location",
-      question: "Will you bring the car to the workshop, or do you need a location visit? Share the location if needed.",
+      question:
+        "Will you bring the car to the workshop, or do you need a location visit? Share the location if needed.",
     },
   ],
   parts: [
     { key: "customer_name", question: "Please share your name first." },
-    { key: "vehicle_brand", question: "What is the vehicle brand?" },
+    {
+      key: "vehicle_brand",
+      question: "Choose the vehicle brand below.",
+      ui: "list",
+      buttonText: "Choose brand",
+      choices: [
+        {
+          id: "Mercedes-Benz",
+          title: "Mercedes-Benz",
+          description: "LuckyStar specialization",
+        },
+        { id: "Toyota", title: "Toyota" },
+        { id: "Volvo", title: "Volvo" },
+        { id: "BMW", title: "BMW" },
+        { id: "Nissan", title: "Nissan" },
+        { id: "Other", title: "Other" },
+      ],
+    },
     { key: "vehicle_model", question: "What is the vehicle model?" },
     { key: "vehicle_year", question: "What year is the car?" },
     {
       key: "engine_type",
-      question: "What is the engine type if known? Reply petrol, diesel, hybrid, or unknown.",
+      question: "Choose the engine type if known.",
+      ui: "buttons",
+      choices: [
+        { id: "petrol", title: "Petrol" },
+        { id: "diesel", title: "Diesel" },
+        { id: "hybrid", title: "Hybrid" },
+      ],
     },
     {
       key: "part_name",
-      question: "Which part do you need? Example: brake pads, oil filter, control arm, shocks.",
+      question:
+        "Which part do you need? Example: brake pads, oil filter, engine mount, shocks, gearbox mount.",
     },
     {
       key: "part_condition",
-      question: "Do you need new parts, used parts, or either?",
+      question: "What type of part do you want?",
+      ui: "buttons",
+      choices: [
+        { id: "new", title: "New" },
+        { id: "used", title: "Used" },
+        { id: "either", title: "Either" },
+      ],
     },
     {
       key: "needs_installation",
-      question: "Do you also need us to fit the parts? Reply yes or no.",
+      question: "Do you also need installation?",
+      ui: "buttons",
+      choices: [
+        { id: "yes", title: "Yes" },
+        { id: "no", title: "No" },
+      ],
     },
   ],
 };
@@ -119,7 +311,7 @@ function detectIntent(message: string): Intent {
     return numberedIntentMap[normalized];
   }
 
-  if (/(service|oil change|major service|minor service|brake service)/i.test(message)) {
+  if (/(service|oil change|major service|minor service|brake service|engine replacement)/i.test(message)) {
     return "service";
   }
 
@@ -127,7 +319,7 @@ function detectIntent(message: string): Intent {
     return "assessment";
   }
 
-  if (/(part|spare|brake pad|filter|plug|shock|control arm|sensor)/i.test(message)) {
+  if (/(part|spare|brake pad|filter|plug|shock|control arm|sensor|engine mount)/i.test(message)) {
     return "parts";
   }
 
@@ -135,7 +327,7 @@ function detectIntent(message: string): Intent {
     return "pricing";
   }
 
-  if (/(location|where|hours|open|close|working hours)/i.test(message)) {
+  if (/(location|where|hours|open|close|working hours|map)/i.test(message)) {
     return "location";
   }
 
@@ -146,12 +338,66 @@ function detectIntent(message: string): Intent {
   return "unknown";
 }
 
-async function getWelcomeMessage() {
+async function getWelcomeText() {
   const reply = await findQuickReply("greeting");
-  return (
-    reply?.message ??
-    "Good day sir/madam. Welcome to LuckyStar Garages. Reply with a number or type what you want: 1. Car service 2. Mechanic assessment / diagnosis 3. Spare parts 4. Prices 5. Location / working hours 6. Talk to a person"
-  );
+  const fallback =
+    "Welcome to LuckyStar Garages. We specialize in Mercedes-Benz service, repairs, parts and engine replacement. Choose what you need below.";
+
+  if (!reply?.message) {
+    return fallback;
+  }
+
+  if (/reply with a number/i.test(reply.message)) {
+    return fallback;
+  }
+
+  return reply.message;
+}
+
+function buildMenuOutbound(body: string): WhatsAppOutbound {
+  return {
+    kind: "list",
+    body,
+    buttonText: "Choose option",
+    sections: [
+      {
+        title: "Workshop help",
+        rows: welcomeMenu,
+      },
+    ],
+  };
+}
+
+function buildStepOutbound(step: FlowStep): WhatsAppOutbound {
+  if (step.ui === "buttons" && step.choices?.length) {
+    return {
+      kind: "buttons",
+      body: step.question,
+      buttons: step.choices.slice(0, 3).map((choice) => ({
+        id: choice.id,
+        title: choice.title,
+      })),
+    };
+  }
+
+  if (step.ui === "list" && step.choices?.length) {
+    return {
+      kind: "list",
+      body: step.question,
+      buttonText: step.buttonText ?? "Choose option",
+      sections: [
+        {
+          title: "Available choices",
+          rows: step.choices,
+        },
+      ],
+    };
+  }
+
+  return {
+    kind: "text",
+    body: step.question,
+  };
 }
 
 function findCurrentStep(session: ConversationSession) {
@@ -249,14 +495,17 @@ async function completeConversation(session: ConversationSession) {
     collectedData: {},
   });
 
-  return `Thank you. Your request has been captured and our team will follow up shortly.${pricingNote} Reply menu anytime to start another request.`;
+  return {
+    kind: "text",
+    body: `Thank you. Your request has been captured and our team will follow up shortly.${pricingNote} Reply menu anytime to start another request.`,
+  } satisfies WhatsAppOutbound;
 }
 
 export async function handleIncomingWhatsAppMessage(input: {
   from: string;
   message: string;
 }) {
-  const welcomeMessage = await getWelcomeMessage();
+  const welcomeText = await getWelcomeText();
   const text = input.message.trim();
 
   await logMessage({
@@ -274,13 +523,14 @@ export async function handleIncomingWhatsAppMessage(input: {
       collectedData: {},
     });
 
+    const outbound = buildMenuOutbound(welcomeText);
     await logMessage({
       phone: input.from,
       direction: "outgoing",
-      textBody: welcomeMessage,
+      textBody: outbound.body,
     });
 
-    return { outboundMessage: welcomeMessage };
+    return { outbound };
   }
 
   let session = await getConversationSession(input.from);
@@ -324,16 +574,16 @@ export async function handleIncomingWhatsAppMessage(input: {
           ...updatedSession,
           currentStep: currentStep.key,
         };
-        const completion = await completeConversation(finalSession);
+        const outbound = await completeConversation(finalSession);
 
         await logMessage({
           phone: input.from,
           direction: "outgoing",
-          textBody: completion,
+          textBody: outbound.body,
           intent: session.currentIntent,
         });
 
-        return { outboundMessage: completion };
+        return { outbound };
       }
 
       await saveConversationSession({
@@ -345,42 +595,57 @@ export async function handleIncomingWhatsAppMessage(input: {
         collectedData,
       });
 
+      const outbound = buildStepOutbound(nextStep);
+
       await logMessage({
         phone: input.from,
         direction: "outgoing",
-        textBody: nextStep.question,
+        textBody: outbound.body,
         intent: session.currentIntent,
       });
 
-      return { outboundMessage: nextStep.question };
+      return { outbound };
     }
   }
 
   const detectedIntent = detectIntent(text);
 
   if (detectedIntent === "unknown") {
+    const outbound = buildMenuOutbound(welcomeText);
     await logMessage({
       phone: input.from,
       direction: "outgoing",
-      textBody: welcomeMessage,
+      textBody: outbound.body,
     });
-    return { outboundMessage: welcomeMessage };
+    return { outbound };
   }
 
   if (detectedIntent === "pricing") {
     const servicePrice = await matchServicePrice({ category: "service" });
     const assessmentPrice = await matchServicePrice({ category: "assessment" });
-    const message = `We can quote for service, diagnosis, and parts. ${
-      servicePrice
-        ? `Typical service labour starts from ${servicePrice.currency} ${servicePrice.priceMin}. `
-        : ""
-    }${
-      assessmentPrice
-        ? `Diagnostic assessment is usually ${assessmentPrice.currency} ${assessmentPrice.priceMin}${
-            assessmentPrice.priceMax ? ` to ${assessmentPrice.priceMax}` : ""
-          }. `
-        : ""
-    }Reply 1 for service, 2 for assessment, or 3 for spare parts for a more exact quote.`;
+    const outbound = {
+      kind: "list",
+      body: `We can quote for Mercedes-Benz service, diagnosis, parts and engine work. ${
+        servicePrice
+          ? `Typical service labour starts from ${servicePrice.currency} ${servicePrice.priceMin}. `
+          : ""
+      }${
+        assessmentPrice
+          ? `Diagnostic assessment is usually ${assessmentPrice.currency} ${assessmentPrice.priceMin}${
+              assessmentPrice.priceMax ? ` to ${assessmentPrice.priceMax}` : ""
+            }. `
+          : ""
+      }Choose a path below for a more exact quote.`,
+      buttonText: "Get a quote",
+      sections: [
+        {
+          title: "Quote options",
+          rows: welcomeMenu.filter((item) =>
+            ["service", "assessment", "parts"].includes(item.id),
+          ),
+        },
+      ],
+    } satisfies WhatsAppOutbound;
 
     await saveConversationSession({
       phone: input.from,
@@ -393,24 +658,33 @@ export async function handleIncomingWhatsAppMessage(input: {
     await logMessage({
       phone: input.from,
       direction: "outgoing",
-      textBody: message,
+      textBody: outbound.body,
       intent: detectedIntent,
     });
 
-    return { outboundMessage: message };
+    return { outbound };
   }
 
   if (detectedIntent === "location") {
     const reply =
       (await findQuickReply("location"))?.message ??
-      "LuckyStar Garages is available during our posted working hours. Share your preferred date and we will confirm availability.";
+      "LuckyStar Garages, 1 Hampden Street, Belvedere, Harare. Share your preferred date and we will confirm availability.";
+    const outbound = {
+      kind: "buttons",
+      body: reply,
+      buttons: [
+        { id: "service", title: "Book service" },
+        { id: "assessment", title: "Get diagnosis" },
+        { id: "human", title: "Talk to us" },
+      ],
+    } satisfies WhatsAppOutbound;
     await logMessage({
       phone: input.from,
       direction: "outgoing",
-      textBody: reply,
+      textBody: outbound.body,
       intent: detectedIntent,
     });
-    return { outboundMessage: reply };
+    return { outbound };
   }
 
   if (detectedIntent === "human") {
@@ -426,13 +700,14 @@ export async function handleIncomingWhatsAppMessage(input: {
       collectedData: {},
     });
 
+    const outbound = { kind: "text", body: reply } satisfies WhatsAppOutbound;
     await logMessage({
       phone: input.from,
       direction: "outgoing",
-      textBody: reply,
+      textBody: outbound.body,
       intent: detectedIntent,
     });
-    return { outboundMessage: reply };
+    return { outbound };
   }
 
   const firstStep = conversationFlows[detectedIntent][0];
@@ -442,7 +717,11 @@ export async function handleIncomingWhatsAppMessage(input: {
       : detectedIntent === "assessment"
         ? "a mechanic assessment"
         : "spare parts";
-  const openingPrompt = `You need ${label}. ${firstStep.question}`;
+  const firstPrompt = `You need ${label}. ${firstStep.question}`;
+  const outbound = buildStepOutbound({
+    ...firstStep,
+    question: firstPrompt,
+  });
 
   await saveConversationSession({
     phone: input.from,
@@ -455,9 +734,9 @@ export async function handleIncomingWhatsAppMessage(input: {
   await logMessage({
     phone: input.from,
     direction: "outgoing",
-    textBody: openingPrompt,
+    textBody: outbound.body,
     intent: detectedIntent,
   });
 
-  return { outboundMessage: openingPrompt };
+  return { outbound };
 }

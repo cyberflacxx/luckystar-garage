@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -14,24 +15,37 @@ export default async function AdminPage() {
   return (
     <main className="flex-1 py-6 sm:py-8">
       <div className="shell space-y-6">
-        <section className="panel rounded-[2rem] px-5 py-6 sm:px-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <section className="panel-dark blueprint-grid rounded-[2.2rem] px-5 py-6 sm:px-8">
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
             <div>
-              <span className="pill">Mobile-first admin panel</span>
-              <h1 className="mt-3 section-title">Garage control room</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)] sm:text-base">
-                Manage service pricing, parts pricing, customer requests, and
-                WhatsApp quick replies. The layout is already tuned for small
-                screens so it can later move cleanly into a PWA or Flutter shell.
+              <span className="pill pill-dark">Mobile-first workshop ops</span>
+              <h1 className="mt-3 section-title text-4xl sm:text-5xl">
+                LuckyStar command deck
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-[#c6ddf1] sm:text-base">
+                Manage service pricing, parts pricing, customer requests and
+                WhatsApp quick replies from a stronger Mercedes-focused admin
+                surface built for phones first.
               </p>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <Link className="btn-secondary text-center" href="/">
+                  Public overview
+                </Link>
+                <Link className="btn-primary text-center" href="/api/whatsapp/webhook">
+                  Webhook endpoint
+                </Link>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:flex">
-              <Link className="btn-secondary text-center" href="/">
-                Overview
-              </Link>
-              <a className="btn-primary text-center" href="/api/whatsapp/webhook">
-                Webhook
-              </a>
+
+            <div className="luxury-card p-4">
+              <Image
+                src="/luckystar-crest.svg"
+                alt="LuckyStar crest"
+                width={760}
+                height={640}
+                className="h-auto w-full rounded-[1.4rem]"
+              />
             </div>
           </div>
         </section>
@@ -43,7 +57,7 @@ export default async function AdminPage() {
                 <div>
                   <h2 className="text-xl font-semibold">Service pricing</h2>
                   <p className="mt-1 text-sm text-[var(--muted)]">
-                    Add labour bands for service jobs and diagnostics.
+                    Add labour bands for service jobs, specialist repairs and diagnostics.
                   </p>
                 </div>
                 <span className="pill">{dashboard.servicePrices.length} items</span>
@@ -112,7 +126,7 @@ export default async function AdminPage() {
                         <p className="mt-1 text-sm text-[var(--muted)]">
                           {[price.category, price.vehicleBrand, price.vehicleModel]
                             .filter(Boolean)
-                            .join(" · ")}
+                            .join(" / ")}
                         </p>
                       </div>
                       <p className="font-semibold">
@@ -135,7 +149,7 @@ export default async function AdminPage() {
                 <div>
                   <h2 className="text-xl font-semibold">Parts catalog</h2>
                   <p className="mt-1 text-sm text-[var(--muted)]">
-                    Keep fast-moving parts and quoted prices current.
+                    Keep fast-moving parts, Benz fitment notes and quoted prices current.
                   </p>
                 </div>
                 <span className="pill">{dashboard.parts.length} parts</span>
@@ -198,7 +212,7 @@ export default async function AdminPage() {
                         <p className="mt-1 text-sm text-[var(--muted)]">
                           {[part.vehicleBrand, part.vehicleModel, part.engineType]
                             .filter(Boolean)
-                            .join(" · ") || "General fitment"}
+                            .join(" / ") || "General fitment"}
                         </p>
                       </div>
                       <div className="text-left sm:text-right">
@@ -225,7 +239,7 @@ export default async function AdminPage() {
                 <div>
                   <h2 className="text-xl font-semibold">Bot responses</h2>
                   <p className="mt-1 text-sm text-[var(--muted)]">
-                    Edit greeting, location, and escalation responses.
+                    Edit greeting, location and escalation responses.
                   </p>
                 </div>
                 <span className="pill">{dashboard.quickReplies.length} replies</span>
@@ -335,7 +349,7 @@ export default async function AdminPage() {
                           {request.customerName || request.phone}
                         </p>
                         <p className="mt-1 text-sm text-[var(--muted)]">
-                          {request.requestType} · {request.phone}
+                          {request.requestType} / {request.phone}
                         </p>
                       </div>
                       <span className="pill">{request.status}</span>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { handleIncomingWhatsAppMessage } from "@/lib/bot";
 import { getWhatsAppConfig } from "@/lib/garage-data";
-import { sendWhatsAppText } from "@/lib/whatsapp";
+import { sendWhatsAppOutbound } from "@/lib/whatsapp";
 
 const fallbackVerifyToken = "luckystar_verify_de3842148dd14258a2f5ec1266e42563";
 
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
       message: text,
     });
 
-    if (response.outboundMessage) {
-      await sendWhatsAppText(from, response.outboundMessage);
+    if (response.outbound) {
+      await sendWhatsAppOutbound(from, response.outbound);
     }
   }
 

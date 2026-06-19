@@ -1,0 +1,39 @@
+<svg width="920" height="640" viewBox="0 0 920 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="baybg" x1="120" y1="40" x2="792" y2="590" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#08111A"/>
+      <stop offset="0.55" stop-color="#0C233A"/>
+      <stop offset="1" stop-color="#104D9A"/>
+    </linearGradient>
+    <linearGradient id="car" x1="280" y1="190" x2="634" y2="454" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDFB"/>
+      <stop offset="0.35" stop-color="#C4D6EA"/>
+      <stop offset="0.7" stop-color="#7F95AF"/>
+      <stop offset="1" stop-color="#EFF8FF"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="268" y1="192" x2="732" y2="314" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00D8FF"/>
+      <stop offset="1" stop-color="#0F6BFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="920" height="640" rx="36" fill="url(#baybg)"/>
+  <path d="M66 548H854" stroke="#1E4066" stroke-width="8"/>
+  <path d="M96 114H820" stroke="#93C4FF" stroke-opacity="0.32" stroke-width="10"/>
+  <path d="M148 146H772" stroke="#93C4FF" stroke-opacity="0.16" stroke-width="2"/>
+  <path d="M126 538C224 512 344 500 486 500C620 500 730 512 816 538" stroke="#16D9FF" stroke-opacity="0.48" stroke-width="14" stroke-linecap="round"/>
+  <path d="M232 344C276 258 362 216 502 214C598 214 678 246 734 318L692 332C642 286 578 264 500 264C392 264 312 292 262 354L232 344Z" fill="url(#glow)"/>
+  <path d="M258 366C294 292 374 254 502 254C594 254 668 278 722 326L708 394H242L258 366Z" fill="url(#car)"/>
+  <path d="M316 308C372 254 442 232 534 238C610 244 668 270 708 314L680 326C640 294 586 276 520 272C444 268 386 282 338 316L316 308Z" fill="#0B1521"/>
+  <path d="M274 396H706L686 440H294L274 396Z" fill="#08111A"/>
+  <path d="M312 382L350 340H630L664 382H312Z" fill="#152B43"/>
+  <path d="M342 380L376 344H456L426 380H342Z" fill="#D7E8F8"/>
+  <path d="M494 344H616L646 380H474L494 344Z" fill="#D7E8F8"/>
+  <circle cx="332" cy="442" r="54" fill="#0A1220"/>
+  <circle cx="332" cy="442" r="28" fill="url(#car)"/>
+  <circle cx="646" cy="442" r="54" fill="#0A1220"/>
+  <circle cx="646" cy="442" r="28" fill="url(#car)"/>
+  <path d="M106 512C146 468 194 432 252 406" stroke="url(#glow)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M694 400C742 422 782 452 822 500" stroke="url(#glow)" stroke-width="12" stroke-linecap="round"/>
+  <text x="106" y="154" fill="#F2FAFF" font-size="52" font-weight="800" font-family="Arial, sans-serif">Mercedes-Benz specialists</text>
+  <text x="106" y="202" fill="#A9C6E5" font-size="28" font-weight="500" font-family="Arial, sans-serif">Service, repairs, parts, diagnostics and engine replacements.</text>
+</svg>

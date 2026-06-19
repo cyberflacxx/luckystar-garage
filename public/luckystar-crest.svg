@@ -1,0 +1,38 @@
+<svg width="760" height="640" viewBox="0 0 760 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="88" y1="46" x2="640" y2="580" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1320"/>
+      <stop offset="0.45" stop-color="#14365C"/>
+      <stop offset="1" stop-color="#0E5BE0"/>
+    </linearGradient>
+    <linearGradient id="chrome" x1="166" y1="160" x2="560" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="0.28" stop-color="#C3D8EE"/>
+      <stop offset="0.62" stop-color="#6E85A2"/>
+      <stop offset="1" stop-color="#EAF4FF"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="120" y1="116" x2="682" y2="308" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00C6FF"/>
+      <stop offset="1" stop-color="#0A5DFF"/>
+    </linearGradient>
+  </defs>
+  <path d="M120 82H640L706 176V470L380 596L54 470V176L120 82Z" fill="url(#bg)"/>
+  <path d="M132 102H628L688 184V458L380 570L72 458V184L132 102Z" stroke="#87C7FF" stroke-opacity="0.55" stroke-width="6"/>
+  <circle cx="378" cy="148" r="72" stroke="url(#chrome)" stroke-width="14"/>
+  <path d="M378 82L410 174L378 292L346 174L378 82Z" fill="url(#chrome)"/>
+  <path d="M312 126L388 166L464 126L388 182L312 126Z" fill="url(#chrome)"/>
+  <path d="M344 172L288 232L378 194L468 232L412 172L378 292L344 172Z" fill="url(#chrome)"/>
+  <path d="M166 228C222 172 304 146 408 150C504 154 574 194 620 270L578 290C530 230 466 198 392 194C318 190 252 210 194 254L166 228Z" fill="url(#accent)" fill-opacity="0.92"/>
+  <path d="M186 334C218 280 296 240 414 240C506 240 574 266 610 320L594 352H540L522 330H238L216 352H166L186 334Z" fill="url(#chrome)"/>
+  <path d="M242 348H520L506 390H260L242 348Z" fill="#0E1726"/>
+  <path d="M210 312C246 266 312 240 408 242C486 244 544 262 584 302L564 316C520 286 470 272 410 272C336 272 280 288 234 324L210 312Z" fill="#091424"/>
+  <circle cx="246" cy="394" r="40" fill="#08111D"/>
+  <circle cx="246" cy="394" r="22" fill="url(#chrome)"/>
+  <circle cx="528" cy="394" r="40" fill="#08111D"/>
+  <circle cx="528" cy="394" r="22" fill="url(#chrome)"/>
+  <path d="M134 432H626L594 484H166L134 432Z" fill="#091424"/>
+  <path d="M120 444H640L604 508H156L120 444Z" fill="#07111E"/>
+  <path d="M112 452H648L612 516H148L112 452Z" stroke="#83CAFF" stroke-opacity="0.42" stroke-width="4"/>
+  <text x="380" y="470" text-anchor="middle" font-size="92" font-weight="800" letter-spacing="4" fill="#F5FBFF" font-family="Georgia, serif">LUCKYSTAR</text>
+  <text x="380" y="548" text-anchor="middle" font-size="44" font-weight="700" letter-spacing="8" fill="#D7EBFF" font-family="Arial, sans-serif">MERCEDES WORKSHOP</text>
+</svg>
