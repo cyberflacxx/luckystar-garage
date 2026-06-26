@@ -6,6 +6,7 @@ import type {
   ConversationSession,
   CustomerRequest,
   DashboardData,
+  MessageLog,
   PartItem,
   QuickReply,
   ServicePrice,
@@ -82,6 +83,19 @@ function mapSetting(row: Record<string, unknown>): BusinessSetting {
   };
 }
 
+function mapMessage(row: Record<string, unknown>): MessageLog {
+  const direction = row.direction === "outgoing" ? "outgoing" : "incoming";
+
+  return {
+    id: String(row.id),
+    phone: String(row.phone),
+    direction,
+    textBody: String(row.text_body),
+    intent: normalizeText(row.intent as string | null),
+    createdAt: String(row.created_at),
+  };
+}
+
 const whatsappSettingKeys = {
   accessToken: "whatsapp_access_token",
   phoneNumberId: "whatsapp_phone_number_id",
@@ -127,7 +141,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     return demoDashboardData;
   }
 
-  const [serviceRes, partsRes, repliesRes, settingsRes, requestsRes] =
+  const [serviceRes, partsRes, repliesRes, settingsRes, requestsRes, messagesRes] =
     await Promise.all([
       supabase
         .from("service_prices")
@@ -150,6 +164,11 @@ export async function getDashboardData(): Promise<DashboardData> {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(8),
+      supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(18),
     ]);
 
   if (
@@ -157,7 +176,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     partsRes.error ||
     repliesRes.error ||
     settingsRes.error ||
-    requestsRes.error
+    requestsRes.error ||
+    messagesRes.error
   ) {
     return demoDashboardData;
   }
@@ -177,6 +197,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     ),
     requests: (requestsRes.data ?? []).map((row) =>
       mapRequest(row as Record<string, unknown>),
+    ),
+    messages: (messagesRes.data ?? []).map((row) =>
+      mapMessage(row as Record<string, unknown>),
     ),
   };
 }
@@ -230,6 +253,73 @@ export async function getSettingValue(key: string) {
     .maybeSingle();
 
   return normalizeText(data?.value as string | null) ?? null;
+}
+
+export async function getBusinessProfile() {
+  const keys = [
+    "business_name",
+    "business_phone",
+    "business_address",
+    "business_hours",
+    "business_latitude",
+    "business_longitude",
+    "quote_note",
+  ];
+
+  const values = Object.fromEntries(
+    await Promise.all(
+      keys.map(async (key) => [key, await getSettingValue(key)] as const),
+    ),
+  );
+
+  return {
+    name: values.business_name ?? "LuckyStar Mercedes Garage",
+    phone: values.business_phone ?? "+263 787 209 882",
+    address: values.business_address ?? "1 Hampden Street, Belvedere, Harare",
+    hours: values.business_hours ?? "Mon-Sat 8:00 AM - 5:30 PM",
+    latitude: values.business_latitude ?? "-17.8292",
+    longitude: values.business_longitude ?? "31.0127",
+    quoteNote:
+      values.quote_note ??
+      "Prices are subject to change. Request a quotation for updated prices.",
+  };
+}
+
+export function getDirectionsUrl(profile: {
+  address: string;
+  latitude?: string | null;
+  longitude?: string | null;
+}) {
+  const coordinates =
+    profile.latitude && profile.longitude
+      ? `${profile.latitude},${profile.longitude}`
+      : null;
+  const destination = coordinates || profile.address;
+
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    destination,
+  )}`;
+}
+
+export async function getActivePartsCatalog() {
+  const supabase = getServiceSupabase();
+
+  if (!supabase) {
+    return demoDashboardData.parts;
+  }
+
+  const { data, error } = await supabase
+    .from("parts_catalog")
+    .select("*")
+    .eq("is_active", true)
+    .order("vehicle_model")
+    .order("part_name");
+
+  if (error) {
+    return demoDashboardData.parts;
+  }
+
+  return (data ?? []).map((row) => mapPart(row as Record<string, unknown>));
 }
 
 export async function getWhatsAppConfig() {
@@ -296,6 +386,7 @@ export async function upsertServicePrice(input: {
 }
 
 export async function upsertPart(input: {
+  id?: string;
   partName: string;
   vehicleBrand?: string;
   vehicleModel?: string;
@@ -310,23 +401,39 @@ export async function upsertPart(input: {
     return;
   }
 
+  const payload = {
+    part_slug: slugify(input.partName),
+    part_name: input.partName,
+    vehicle_brand: asDbKey(input.vehicleBrand),
+    vehicle_model: asDbKey(input.vehicleModel),
+    engine_type: asDbKey(input.engineType),
+    price: input.price,
+    currency: input.currency.toUpperCase(),
+    stock_status: slugify(input.stockStatus).replaceAll("-", "_"),
+    notes: normalizeText(input.notes),
+    is_active: true,
+  };
+
+  if (input.id) {
+    await supabase.from("parts_catalog").update(payload).eq("id", input.id);
+    return;
+  }
+
   await supabase.from("parts_catalog").upsert(
-    {
-      part_slug: slugify(input.partName),
-      part_name: input.partName,
-      vehicle_brand: asDbKey(input.vehicleBrand),
-      vehicle_model: asDbKey(input.vehicleModel),
-      engine_type: asDbKey(input.engineType),
-      price: input.price,
-      currency: input.currency.toUpperCase(),
-      stock_status: slugify(input.stockStatus).replaceAll("-", "_"),
-      notes: normalizeText(input.notes),
-      is_active: true,
-    },
+    payload,
     {
       onConflict: "part_slug,vehicle_brand,vehicle_model,engine_type",
     },
   );
+}
+
+export async function deactivatePart(id: string) {
+  const supabase = getServiceSupabase();
+  if (!supabase) {
+    return;
+  }
+
+  await supabase.from("parts_catalog").update({ is_active: false }).eq("id", id);
 }
 
 export async function upsertQuickReply(input: {
@@ -363,6 +470,26 @@ export async function upsertSetting(input: {
     { key: slugify(input.key).replaceAll("-", "_"), value: input.value },
     { onConflict: "key" },
   );
+}
+
+export async function upsertSettings(input: Record<string, string | undefined>) {
+  const supabase = getServiceSupabase();
+  if (!supabase) {
+    return;
+  }
+
+  const rows = Object.entries(input)
+    .filter(([, value]) => value?.trim().length)
+    .map(([key, value]) => ({
+      key: slugify(key).replaceAll("-", "_"),
+      value: value?.trim() ?? "",
+    }));
+
+  if (!rows.length) {
+    return;
+  }
+
+  await supabase.from("bot_config").upsert(rows, { onConflict: "key" });
 }
 
 export async function findQuickReply(replyKey: string) {

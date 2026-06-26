@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import {
+  deactivatePart,
   upsertPart,
   upsertQuickReply,
   upsertServicePrice,
   upsertSetting,
+  upsertSettings,
 } from "@/lib/garage-data";
 
 const serviceSchema = z.object({
@@ -23,6 +25,7 @@ const serviceSchema = z.object({
 });
 
 const partSchema = z.object({
+  id: z.string().optional(),
   partName: z.string().min(2),
   vehicleBrand: z.string().optional(),
   vehicleModel: z.string().optional(),
@@ -42,6 +45,16 @@ const quickReplySchema = z.object({
 const settingSchema = z.object({
   key: z.string().min(2),
   value: z.string().min(1),
+});
+
+const companyInfoSchema = z.object({
+  business_name: z.string().min(2),
+  business_phone: z.string().min(3),
+  business_address: z.string().min(3),
+  business_hours: z.string().min(2),
+  business_latitude: z.string().optional(),
+  business_longitude: z.string().optional(),
+  quote_note: z.string().min(5),
 });
 
 function readString(formData: FormData, key: string) {
@@ -69,6 +82,7 @@ export async function saveServicePrice(formData: FormData) {
 
 export async function savePart(formData: FormData) {
   const parsed = partSchema.parse({
+    id: readString(formData, "id") || undefined,
     partName: readString(formData, "partName"),
     vehicleBrand: readString(formData, "vehicleBrand") || undefined,
     vehicleModel: readString(formData, "vehicleModel") || undefined,
@@ -80,6 +94,17 @@ export async function savePart(formData: FormData) {
   });
 
   await upsertPart(parsed);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+export async function deletePart(formData: FormData) {
+  const id = readString(formData, "id");
+
+  if (id) {
+    await deactivatePart(id);
+  }
 
   revalidatePath("/");
   revalidatePath("/admin");
@@ -105,6 +130,23 @@ export async function saveSetting(formData: FormData) {
   });
 
   await upsertSetting(parsed);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+export async function saveCompanyInfo(formData: FormData) {
+  const parsed = companyInfoSchema.parse({
+    business_name: readString(formData, "business_name"),
+    business_phone: readString(formData, "business_phone"),
+    business_address: readString(formData, "business_address"),
+    business_hours: readString(formData, "business_hours"),
+    business_latitude: readString(formData, "business_latitude") || undefined,
+    business_longitude: readString(formData, "business_longitude") || undefined,
+    quote_note: readString(formData, "quote_note"),
+  });
+
+  await upsertSettings(parsed);
 
   revalidatePath("/");
   revalidatePath("/admin");

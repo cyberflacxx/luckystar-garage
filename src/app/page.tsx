@@ -103,7 +103,7 @@ export default async function Home() {
                 </div>
                 <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/8 bg-[#09111b] p-3">
                   <Image
-                    src="/luckystar-crest.svg"
+                    src="/logo.png"
                     alt="LuckyStar Mercedes workshop crest"
                     width={760}
                     height={640}

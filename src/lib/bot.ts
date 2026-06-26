@@ -1,7 +1,11 @@
 import {
   createCustomerRequest,
   findQuickReply,
+  formatMoney,
+  getActivePartsCatalog,
+  getBusinessProfile,
   getConversationSession,
+  getDirectionsUrl,
   logMessage,
   matchServicePrice,
   saveConversationSession,
@@ -25,29 +29,39 @@ type FlowStep = {
 
 const welcomeMenu: StepChoice[] = [
   {
-    id: "service",
-    title: "Car service",
-    description: "Minor, major, engine and Benz service work",
+    id: "garage_info",
+    title: "View garage info",
+    description: "Mercedes-Benz repairs, diagnostics and parts",
   },
   {
-    id: "assessment",
-    title: "Diagnosis",
-    description: "Fault finding, inspections and engine assessment",
+    id: "contact_info",
+    title: "View contact info",
+    description: "Phone, address and opening hours",
   },
   {
-    id: "parts",
-    title: "Spare parts",
-    description: "Mercedes-Benz parts, filters, brakes and more",
+    id: "all_parts",
+    title: "View all parts",
+    description: "W203 and W204 parts and prices",
+  },
+  {
+    id: "directions",
+    title: "View GPS directions",
+    description: "Open Google Maps to the garage",
   },
   {
     id: "pricing",
-    title: "Prices",
-    description: "Service, labour and diagnostic estimates",
+    title: "Request quotation",
+    description: "Get updated price confirmation",
   },
   {
-    id: "location",
-    title: "Location",
-    description: "Workshop address and operating hours",
+    id: "parts",
+    title: "Order parts",
+    description: "Request Mercedes-Benz spare parts",
+  },
+  {
+    id: "service",
+    title: "Book repairs",
+    description: "Service, diagnostics and workshop bookings",
   },
   {
     id: "human",
@@ -57,6 +71,8 @@ const welcomeMenu: StepChoice[] = [
 ];
 
 const mercedesModels = [
+  "W203",
+  "W204",
   "C180",
   "C200",
   "C250",
@@ -87,11 +103,7 @@ const conversationFlows: Record<
           title: "Mercedes-Benz",
           description: "LuckyStar specialization",
         },
-        { id: "Toyota", title: "Toyota" },
-        { id: "Volvo", title: "Volvo" },
-        { id: "BMW", title: "BMW" },
-        { id: "Nissan", title: "Nissan" },
-        { id: "Other", title: "Other" },
+        { id: "Other", title: "Other Benz / describe" },
       ],
     },
     {
@@ -186,11 +198,7 @@ const conversationFlows: Record<
           title: "Mercedes-Benz",
           description: "Diagnostics and specialist repair",
         },
-        { id: "Toyota", title: "Toyota" },
-        { id: "Volvo", title: "Volvo" },
-        { id: "BMW", title: "BMW" },
-        { id: "Nissan", title: "Nissan" },
-        { id: "Other", title: "Other" },
+        { id: "Other", title: "Other Benz / describe" },
       ],
     },
     { key: "vehicle_model", question: "What is the vehicle model?" },
@@ -240,11 +248,7 @@ const conversationFlows: Record<
           title: "Mercedes-Benz",
           description: "LuckyStar specialization",
         },
-        { id: "Toyota", title: "Toyota" },
-        { id: "Volvo", title: "Volvo" },
-        { id: "BMW", title: "BMW" },
-        { id: "Nissan", title: "Nissan" },
-        { id: "Other", title: "Other" },
+        { id: "Other", title: "Other Benz / describe" },
       ],
     },
     { key: "vehicle_model", question: "What is the vehicle model?" },
@@ -311,7 +315,7 @@ function detectIntent(message: string): Intent {
     return numberedIntentMap[normalized];
   }
 
-  if (/(service|oil change|major service|minor service|brake service|engine replacement)/i.test(message)) {
+  if (/(service|oil change|major service|minor service|brake service|engine replacement|book repairs)/i.test(message)) {
     return "service";
   }
 
@@ -319,15 +323,15 @@ function detectIntent(message: string): Intent {
     return "assessment";
   }
 
-  if (/(part|spare|brake pad|filter|plug|shock|control arm|sensor|engine mount)/i.test(message)) {
+  if (/(part|spare|brake pad|filter|plug|shock|control arm|sensor|engine mount|order parts)/i.test(message)) {
     return "parts";
   }
 
-  if (/(price|cost|how much|quote|quotation)/i.test(message)) {
+  if (/(price|cost|how much|quote|quotation|request quotation)/i.test(message)) {
     return "pricing";
   }
 
-  if (/(location|where|hours|open|close|working hours|map)/i.test(message)) {
+  if (/(location|where|hours|open|close|working hours|map|gps|directions|contact info)/i.test(message)) {
     return "location";
   }
 
@@ -340,8 +344,8 @@ function detectIntent(message: string): Intent {
 
 async function getWelcomeText() {
   const reply = await findQuickReply("greeting");
-  const fallback =
-    "Welcome to LuckyStar Garages. We specialize in Mercedes-Benz service, repairs, parts and engine replacement. Choose what you need below.";
+  const profile = await getBusinessProfile();
+  const fallback = `Welcome to ${profile.name}, the home of all Benz spare parts, repairs, diagnostics and service.\n\nNote: ${profile.quoteNote}\n\nChoose what you need below.`;
 
   if (!reply?.message) {
     return fallback;
@@ -351,7 +355,7 @@ async function getWelcomeText() {
     return fallback;
   }
 
-  return reply.message;
+  return `${reply.message}\n\nNote: ${profile.quoteNote}`;
 }
 
 function buildMenuOutbound(body: string): WhatsAppOutbound {
@@ -364,6 +368,108 @@ function buildMenuOutbound(body: string): WhatsAppOutbound {
         title: "Workshop help",
         rows: welcomeMenu,
       },
+    ],
+  };
+}
+
+function settingLine(label: string, value?: string | null) {
+  return value ? `${label}: ${value}` : null;
+}
+
+async function buildGarageInfoOutbound(): Promise<WhatsAppOutbound> {
+  const profile = await getBusinessProfile();
+
+  return {
+    kind: "buttons",
+    body: [
+      profile.name,
+      "Home of Mercedes-Benz spare parts, repairs, diagnostics, suspension, brakes and service.",
+      settingLine("Hours", profile.hours),
+      `Note: ${profile.quoteNote}`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    buttons: [
+      { id: "all_parts", title: "View parts" },
+      { id: "pricing", title: "Get quote" },
+      { id: "directions", title: "Directions" },
+    ],
+  };
+}
+
+async function buildContactInfoOutbound(): Promise<WhatsAppOutbound> {
+  const profile = await getBusinessProfile();
+
+  return {
+    kind: "buttons",
+    body: [
+      settingLine("Phone", profile.phone),
+      settingLine("Address", profile.address),
+      settingLine("Hours", profile.hours),
+      `Directions: ${getDirectionsUrl(profile)}`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    buttons: [
+      { id: "directions", title: "GPS directions" },
+      { id: "human", title: "Talk to us" },
+      { id: "pricing", title: "Get quote" },
+    ],
+  };
+}
+
+async function buildPartsCatalogOutbound(): Promise<WhatsAppOutbound> {
+  const [parts, profile] = await Promise.all([
+    getActivePartsCatalog(),
+    getBusinessProfile(),
+  ]);
+  const groupedParts = parts.reduce<Record<string, typeof parts>>((groups, part) => {
+    const key = part.vehicleModel || "Mercedes-Benz";
+    groups[key] = groups[key] ? [...groups[key], part] : [part];
+    return groups;
+  }, {});
+
+  const catalog = Object.entries(groupedParts)
+    .map(([model, items]) => {
+      const rows = items
+        .slice(0, 12)
+        .map(
+          (part) =>
+            `- ${part.partName}: ${formatMoney(part.price, part.currency)}`,
+        )
+        .join("\n");
+
+      return `${model}\n${rows}`;
+    })
+    .join("\n\n");
+
+  return {
+    kind: "buttons",
+    body: [
+      "Available Mercedes-Benz parts and prices:",
+      catalog || "No parts are listed yet.",
+      `Note: ${profile.quoteNote}`,
+    ].join("\n\n"),
+    buttons: [
+      { id: "parts", title: "Order parts" },
+      { id: "pricing", title: "Get quote" },
+      { id: "human", title: "Talk to us" },
+    ],
+  };
+}
+
+async function buildDirectionsOutbound(): Promise<WhatsAppOutbound> {
+  const profile = await getBusinessProfile();
+
+  return {
+    kind: "buttons",
+    body: `Open GPS directions to ${profile.name}:\n${getDirectionsUrl(
+      profile,
+    )}\n\nAddress: ${profile.address}`,
+    buttons: [
+      { id: "contact_info", title: "Contact info" },
+      { id: "parts", title: "Order parts" },
+      { id: "human", title: "Talk to us" },
     ],
   };
 }
@@ -609,6 +715,28 @@ export async function handleIncomingWhatsAppMessage(input: {
   }
 
   const detectedIntent = detectIntent(text);
+  const normalizedText = normalizeMessage(text);
+
+  const directOutbound =
+    /garage info/.test(normalizedText)
+      ? await buildGarageInfoOutbound()
+      : /contact info/.test(normalizedText)
+        ? await buildContactInfoOutbound()
+        : /all parts|view all parts|view parts/.test(normalizedText)
+          ? await buildPartsCatalogOutbound()
+          : /gps|directions/.test(normalizedText)
+            ? await buildDirectionsOutbound()
+            : null;
+
+  if (directOutbound) {
+    await logMessage({
+      phone: input.from,
+      direction: "outgoing",
+      textBody: directOutbound.body,
+      intent: detectedIntent,
+    });
+    return { outbound: directOutbound };
+  }
 
   if (detectedIntent === "unknown") {
     const outbound = buildMenuOutbound(welcomeText);
@@ -641,7 +769,7 @@ export async function handleIncomingWhatsAppMessage(input: {
         {
           title: "Quote options",
           rows: welcomeMenu.filter((item) =>
-            ["service", "assessment", "parts"].includes(item.id),
+            ["service", "assessment", "parts", "human"].includes(item.id),
           ),
         },
       ],
@@ -666,18 +794,7 @@ export async function handleIncomingWhatsAppMessage(input: {
   }
 
   if (detectedIntent === "location") {
-    const reply =
-      (await findQuickReply("location"))?.message ??
-      "LuckyStar Garages, 1 Hampden Street, Belvedere, Harare. Share your preferred date and we will confirm availability.";
-    const outbound = {
-      kind: "buttons",
-      body: reply,
-      buttons: [
-        { id: "service", title: "Book service" },
-        { id: "assessment", title: "Get diagnosis" },
-        { id: "human", title: "Talk to us" },
-      ],
-    } satisfies WhatsAppOutbound;
+    const outbound = await buildContactInfoOutbound();
     await logMessage({
       phone: input.from,
       direction: "outgoing",

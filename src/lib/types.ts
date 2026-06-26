@@ -68,6 +68,15 @@ export type CustomerRequest = {
   status: string;
 };
 
+export type MessageLog = {
+  id: string;
+  phone: string;
+  direction: "incoming" | "outgoing";
+  textBody: string;
+  intent: string | null;
+  createdAt: string;
+};
+
 export type ConversationSession = {
   id: string;
   phone: string;
@@ -84,6 +93,7 @@ export type DashboardData = {
   quickReplies: QuickReply[];
   settings: BusinessSetting[];
   requests: CustomerRequest[];
+  messages: MessageLog[];
 };
 
 export type SetupItem = {

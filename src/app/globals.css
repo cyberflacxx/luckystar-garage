@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f1e8;
+  --background: #f7f9fc;
   --foreground: #1a2230;
-  --panel: rgba(255, 250, 244, 0.88);
-  --panel-strong: #fff9f1;
+  --panel: rgba(255, 255, 255, 0.94);
+  --panel-strong: #ffffff;
   --border: rgba(32, 42, 58, 0.12);
-  --accent: #d86d29;
-  --accent-strong: #9f3c08;
+  --accent: #0a7cff;
+  --accent-strong: #063b9d;
   --electric: #0a7cff;
   --electric-soft: #dff2ff;
   --ink-deep: #08111a;
   --muted: #697586;
   --success: #2f7d57;
   --warning: #b66b14;
-  --shadow: 0 20px 60px rgba(27, 34, 47, 0.12);
+  --shadow: 0 16px 42px rgba(27, 34, 47, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-sans: Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,17 +41,13 @@
 }
 
 html {
-  background:
-    radial-gradient(circle at top left, rgba(216, 109, 41, 0.18), transparent 28%),
-    radial-gradient(circle at right 20%, rgba(47, 125, 87, 0.14), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%),
-    var(--background);
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
 }
 
 a {
@@ -75,7 +71,6 @@ textarea {
   background: var(--panel);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(16px);
 }
 
 .panel-strong {
@@ -93,11 +88,12 @@ textarea {
 
 .field {
   width: 100%;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 0.9rem 1rem;
+  background: #ffffff;
+  padding: 0.72rem 0.85rem;
   color: var(--foreground);
+  font-size: 0.9rem;
 }
 
 .field::placeholder {
@@ -108,15 +104,15 @@ textarea {
   border-radius: 999px;
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: white;
-  padding: 0.8rem 1.15rem;
+  padding: 0.68rem 1rem;
   font-weight: 650;
 }
 
 .btn-secondary {
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.6);
-  padding: 0.8rem 1.15rem;
+  background: #ffffff;
+  padding: 0.68rem 1rem;
   font-weight: 600;
 }
 
